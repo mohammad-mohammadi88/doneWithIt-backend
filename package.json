@@ -1,0 +1,42 @@
+{
+  "name": "mybackend",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "tsw": "tsc -w",
+    "nodemon": "nodemon dist/index.js",
+    "dev": " concurrently \"npm run tsw\" \"npm run nodemon\" ",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^6.11.1",
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.7.0",
+    "compression": "^1.8.0",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.1",
+    "prisma": "^6.11.1",
+    "sharp": "^0.34.3",
+    "streamifier": "^0.1.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.0.12",
+    "@types/streamifier": "^0.1.2",
+    "concurrently": "^9.2.0",
+    "typescript": "^5.8.3"
+  }
+}
