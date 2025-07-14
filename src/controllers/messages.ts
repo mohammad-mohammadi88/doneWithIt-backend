@@ -33,8 +33,8 @@ const getMessagesCTRL: MyRequestHandler<null, ResponseMessage[]> = async (
     };
     const result: Promise<ResponseMessage>[] = messages.map(
         async (message) => ({
-            ...message,
-            fromUserId:
+            ...message, 
+            fromUser:
                 (await mapUser(message.fromUserId)) ?? message.fromUserId,
         })
     );
