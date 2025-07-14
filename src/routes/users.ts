@@ -5,5 +5,9 @@ import prisma from "../db/prisma.js";
 export default express
     .Router()
     .get("/", async (_, res) =>
-        res.status(200).json(await prisma.user.findMany())
+        res.status(200).json(await prisma.user.findMany({select:{
+            email:true,
+            id:true,
+            name:true
+        }}))
     );
