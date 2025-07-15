@@ -10,13 +10,13 @@ class ListingsStore {
         const options: any = {
             orderBy: [
                 {
-                    createdAt: "desc",
-                },
-                {
                     isSold: "asc",
                 },
+                {
+                    createdAt: "desc",
+                },
             ],
-        };
+        }
         if (perPage) {
             options.take = perPage;
             if (page) options.skip = perPage * (page - 1);
