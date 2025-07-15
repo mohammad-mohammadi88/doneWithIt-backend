@@ -38,7 +38,7 @@ class ListingsStore {
     getUserListingsCount = async (userId: number): Promise<number | false> =>
         await prisma.listings
             .count({
-                where: { userId },
+                where: { userId,isSold:false },
             })
             .catch(() => false);
 
