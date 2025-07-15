@@ -10,7 +10,6 @@ interface ResponseMessage {
     content: string;
     createdAt: Date;
     fromUser: Omit<User, "password"> | null;
-    fromUserId: number;
     id: number;
     listingId: number | null;
     toUserId: number;
@@ -33,15 +32,47 @@ const getMessagesCTRL: MyRequestHandler<null, ResponseMessage[]> = async (
         return { email, id, name };
     };
     const result: Promise<ResponseMessage>[] = messages.map(
-        async (message) => ({
+        async ({ fromUserId, ...message }) => ({
             ...message,
-            fromUser: (await mapUser(message.fromUserId)) ?? null,
+            fromUser: (await mapUser(fromUserId)) ?? null,
         })
     );
     const responseMessages = await Promise.all([...result]);
     return res.status(200).json(responseMessages);
 };
 export const getMessagesHandler: any[] = [auth, getMessagesCTRL];
+
+// get message with id
+const getMessageCTRL: MyRequestHandler<
+    { id: string },
+    ResponseMessage
+> = async (req, res) => {
+    const id = Number(req.params.id);
+    const value = await messagesStore.getMessageWithId(id);
+    const { fromUserId, ...message } = errorHandler<Message>(
+        value,
+        res,
+        "message with this id"
+    );
+    if (message.toUserId !== req.user.userId)
+        return res
+            .status(403)
+            .json({ error: "You are not allowed to get others message" });
+    const mapUser = async (
+        userId: number
+    ): Promise<Omit<User, "password"> | void> => {
+        const value1 = await usersStore.getUserWithEmailOrId({ id: userId });
+        const user = errorHandler<User>(value1, res, "user with given userId");
+
+        const { email, id, name } = user;
+        return { email, id, name };
+    };
+    res.status(200).json({
+        ...message,
+        fromUser: await mapUser(fromUserId) ?? null,
+    });
+};
+export const getMessageHandler: any[] = [auth, getMessageCTRL];
 
 // post message
 
