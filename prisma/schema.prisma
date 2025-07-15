@@ -40,6 +40,6 @@ model Message {
   createdAt  DateTime @default(now())
   fromUserId Int
   id         Int      @id @default(autoincrement())
-  listingId  Int
+  listingId  Int?
   toUserId   Int
 }

@@ -1,7 +1,7 @@
 import "express";
 import type { NextFunction, Request, Response } from "express";
 
-import type { Listings } from "../db/prisma.js";
+import type { Listings, Message } from "../db/prisma.js";
 
 export interface User {
     userId: number;
@@ -16,6 +16,7 @@ declare module "express-serve-static-core" {
         user: User;
         images?: Image[];
         listing?: Listings;
+        message?: Omit<Message, "id" | "createdAt">
     }
 }
 

@@ -9,10 +9,11 @@ import { errorHandler } from "../utils/index.js";
 interface ResponseMessage {
     content: string;
     createdAt: Date;
-    fromUserId: Omit<User, "password"> | number;
+    fromUser: Omit<User, "password"> | null;
+    fromUserId: number;
     id: number;
-    listingId: number;
-    toUserId: Omit<User, "password"> | number;
+    listingId: number | null;
+    toUserId: number;
 }
 // get messages
 const getMessagesCTRL: MyRequestHandler<null, ResponseMessage[]> = async (
@@ -33,9 +34,8 @@ const getMessagesCTRL: MyRequestHandler<null, ResponseMessage[]> = async (
     };
     const result: Promise<ResponseMessage>[] = messages.map(
         async (message) => ({
-            ...message, 
-            fromUser:
-                (await mapUser(message.fromUserId)) ?? message.fromUserId,
+            ...message,
+            fromUser: (await mapUser(message.fromUserId)) ?? null,
         })
     );
     const responseMessages = await Promise.all([...result]);
@@ -47,32 +47,59 @@ export const getMessagesHandler: any[] = [auth, getMessagesCTRL];
 
 const schema = Joi.object({
     content: Joi.string().required().label("Message"),
-    listingId: Joi.number().required(),
+    listingId: Joi.number().optional(),
+    userId: Joi.number().optional(),
 });
-const postMessageCTRL: MyRequestHandler<
+const messageCreator: MyRequestHandler<
     null,
-    Message,
-    { content: string; listingId: number }
-> = async (req, res) => {
-    let { content, listingId } = req.body;
-    listingId = Number(listingId);
-    const value = await listingsStore.getListingWithId(listingId);
-    const listing = errorHandler<Listings>(value, res, "listing with this id");
+    null,
+    { content: string; listingId?: number; userId?: number }
+> = async (req, res, next) => {
+    let { content, listingId, userId } = req.body;
+    if (listingId) {
+        listingId = Number(listingId);
+        const value = await listingsStore.getListingWithId(listingId);
+        const listing = errorHandler<Listings>(
+            value,
+            res,
+            "listing with this id"
+        );
+        req.message = {
+            content,
+            fromUserId: req.user?.userId ?? 1,
+            toUserId: listing.userId,
+            listingId,
+        };
+    } else if (userId && !listingId) {
+        const id = Number(userId);
+        const value = await usersStore.getUserWithEmailOrId({ id });
+        errorHandler<User>(value, res, "user with this id");
+        req.message = {
+            content,
+            toUserId: id,
+            fromUserId: req.user.userId ?? 1,
+            listingId: null,
+        };
+    } else
+        return res
+            .status(400)
+            .json({ error: "please send either userId or listingId" });
 
-    const newMessage = {
-        content,
-        fromUserId: req.user?.userId ?? 1,
-        toUserId: listing.userId,
-        listingId,
-    };
-    const value1 = await messagesStore.postMessage(newMessage);
-    const message = errorHandler<Message>(value1, res);
+    next();
+};
+const postMessageCTRL: MyRequestHandler<null, Message> = async (req, res) => {
+    if (!req.message) return;
+
+    const newMessage = req.message;
+    const messageValue = await messagesStore.postMessage(newMessage);
+    const message = errorHandler<Message>(messageValue, res);
 
     res.status(201).json(message);
 };
 export const postMessageHandler: any[] = [
     auth,
     validationSchema(schema),
+    messageCreator,
     postMessageCTRL,
 ];
 
