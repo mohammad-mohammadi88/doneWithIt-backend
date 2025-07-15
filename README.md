@@ -160,6 +160,22 @@ It will send messages sent to you if successful
 
 ---
 
+### 🚀 GET /messages/:id
+
+This will return the message belong to the given id if the message is belong to you.
+To detect your messages you should authenticate and send you auth token as **x-auth-token** in headers
+
+**Headers**
+`x-auth-token: your token`
+
+**URL Params**
+`:id => Message Id`
+
+**Response**
+It will send message withthe given id if successful
+
+---
+
 ### 🚀 POST /messages
 
 This will send a message to the listings owner.
