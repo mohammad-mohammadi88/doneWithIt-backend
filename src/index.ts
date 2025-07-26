@@ -1,6 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
+import compression from "compression"
 import express from "express";
+import helmet from "helmet";
 import dotenv from "dotenv";
+import cors from "cors";
 dotenv.config();
 
 import prisma from "./db/prisma.js";
@@ -30,8 +33,11 @@ async function main() {
     const app = express();
 
     // middlewares
+    app.use(cors())
     app.use(express.json());
     app.use(express.urlencoded());
+    app.use(compression())
+    app.use(helmet())
 
     // routes
     app.use("/auth", authRouter);
